@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #000;
+      color: #fff;
+      padding: 40px;
+      min-height: 100vh;
+    }
+
+    @media (prefers-color-scheme: light) {
+      body {
+        background: #fff;
+        color: #000;
+      }
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      color: #888;
+      margin-bottom: 40px;
+      font-size: 14px;
+    }
+
+    .section {
+      background: #111;
+      border: 2px solid #222;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .section {
+        background: #f5f5f5;
+        border-color: #ddd;
+      }
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      letter-spacing: 0.3px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: #000;
+      border: 2px solid #222;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 16px;
+      color: #fff;
+      font-family: 'Monaco', 'Courier New', monospace;
+      transition: border-color 0.2s;
+    }
+
+    @media (prefers-color-scheme: light) {
+      input[type="text"] {
+        background: #fff;
+        border-color: #ddd;
+        color: #000;
+      }
+
+      input[type="text"]::placeholder {
+        color: #aaa;
+      }
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #444;
+    }
+
+    @media (prefers-color-scheme: light) {
+      input[type="text"]:focus {
+        border-color: #999;
+      }
+    }
+
+    input[type="text"]::placeholder {
+      color: #444;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    button {
+      flex: 1;
+      padding: 14px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: 2px solid;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #000;
+      color: #fff;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .btn-primary {
+        background: #000;
+        color: #fff;
+        border-color: #000;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: #fff;
+        color: #000;
+      }
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: #fff;
+      border-color: #333;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      border-color: #fff;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .btn-secondary {
+        color: #000;
+        border-color: #ccc;
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        border-color: #000;
+      }
+    }
+
+    .status-message {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+
+    .status-message.success {
+      background: #001a00;
+      border: 2px solid #00ff00;
+      color: #00ff00;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .status-message.success {
+        background: #e6ffe6;
+        border-color: #00cc00;
+        color: #00aa00;
+      }
+    }
+
+    .status-message.error {
+      background: #1a0000;
+      border: 2px solid #ff0000;
+      color: #ff0000;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .status-message.error {
+        background: #ffe6e6;
+        border-color: #cc0000;
+        color: #aa0000;
+      }
+    }
+
+    .status-message.info {
+      background: #001a1a;
+      border: 2px solid #00ffff;
+      color: #00ffff;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .status-message.info {
+        background: #e6f7ff;
+        border-color: #0099cc;
+        color: #0077aa;
+      }
+    }
+
+    .help-text {
+      font-size: 13px;
+      color: #666;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    .help-text code {
+      background: #000;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Monaco', 'Courier New', monospace;
+      font-size: 12px;
+      color: #888;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .help-text code {
+        background: #eee;
+        color: #333;
+      }
+    }
+
+    .light-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .light-card {
+      background: #000;
+      border: 2px solid #222;
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .light-card {
+        background: #fff;
+        border-color: #ddd;
+      }
+    }
+
+    .light-card:hover {
+      border-color: #444;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .light-card:hover {
+        border-color: #999;
+      }
+    }
+
+    .light-card.selected {
+      border-color: #00ff00;
+      background: #001a00;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .light-card.selected {
+        border-color: #00cc00;
+        background: #e6ffe6;
+      }
+    }
+
+    .light-name {
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .light-type {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .light-id {
+      font-size: 11px;
+      color: #444;
+      margin-top: 4px;
+      font-family: 'Monaco', 'Courier New', monospace;
+    }
+
+    .color-picker-container {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .color-preview {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      border: 2px solid #222;
+      cursor: pointer;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .color-preview {
+        border-color: #ddd;
+      }
+    }
+
+    .color-inputs {
+      flex: 1;
+    }
+
+    .slider-group {
+      margin-bottom: 12px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #222;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    @media (prefers-color-scheme: light) {
+      input[type="range"] {
+        background: #ddd;
+      }
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      border: 2px solid #000;
+    }
+
+    @media (prefers-color-scheme: light) {
+      input[type="range"]::-webkit-slider-thumb {
+        background: #000;
+        border-color: #fff;
+      }
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      border: 2px solid #000;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Settings</h1>
+    <p class="subtitle">Configure Philips Hue integration</p>
+
+    <!-- Step 1: Bridge Discovery -->
+    <div class="section" id="bridgeSection">
+      <div class="section-title">1. Connect to Hue Bridge</div>
+
+      <div class="field">
+        <label>Bridge IP Address</label>
+        <input type="text" id="bridgeIp" placeholder="Discovering..." readonly>
+        <div class="help-text">Automatically discovering your bridge...</div>
+      </div>
+
+      <div class="field" id="usernameField" class="hidden">
+        <label>Authentication</label>
+        <div class="help-text" id="authInstructions">Press the button on your Hue Bridge, then click
+          Authenticate below.</div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-secondary" id="clearBridgeBtn">Clear Bridge</button>
+        <button class="btn-secondary" id="rediscoverBtn">Rediscover</button>
+        <button class="btn-primary" id="authenticateBtn" disabled>Authenticate</button>
+      </div>
+
+      <div class="status-message" id="bridgeStatus"></div>
+    </div>
+
+    <!-- Step 2: Light Selection -->
+    <div class="section hidden" id="lightSection">
+      <div class="section-title">2. Select Light</div>
+
+      <div id="lightGrid" class="light-grid">
+        <div class="loading">Loading lights...</div>
+      </div>
+
+      <div class="status-message" id="lightStatus"></div>
+    </div>
+
+    <!-- Step 3: Meeting Color -->
+    <div class="section hidden" id="colorSection">
+      <div class="section-title">3. Meeting Light Settings</div>
+
+      <div class="field">
+        <label>Color & Brightness</label>
+        <div class="color-picker-container">
+          <div class="color-preview" id="colorPreview"></div>
+          <div class="color-inputs">
+            <div class="slider-group">
+              <div class="slider-label">
+                <span>Hue</span>
+                <span id="hueValue">0°</span>
+              </div>
+              <input type="range" id="hueSlider" min="0" max="360" value="0">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label">
+                <span>Saturation</span>
+                <span id="satValue">100%</span>
+              </div>
+              <input type="range" id="satSlider" min="0" max="100" value="100">
+            </div>
+            <div class="slider-group">
+              <div class="slider-label">
+                <span>Brightness</span>
+                <span id="briValue">100%</span>
+              </div>
+              <input type="range" id="briSlider" min="0" max="100" value="100">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-secondary" id="testColorBtn">Test</button>
+        <button class="btn-primary" id="saveColorBtn">Save</button>
+      </div>
+
+      <div class="status-message" id="colorStatus"></div>
+    </div>
+  </div>
+
+  <script src="../constants.js"></script>
+  <script src="settings.js"></script>
+</body>
+
+</html>
