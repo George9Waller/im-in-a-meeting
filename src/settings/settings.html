@@ -423,29 +423,34 @@
 
 <body>
   <div class="container">
-    <h1>Settings</h1>
-    <p class="subtitle">Configure Philips Hue integration</p>
+    <h1 data-i18n="settingsTitle">Settings</h1>
+    <p class="subtitle" data-i18n="settingsSubtitle">Configure Philips Hue integration</p>
 
     <!-- Step 1: Bridge Discovery -->
     <div class="section" id="bridgeSection">
-      <div class="section-title">1. Connect to Hue Bridge</div>
+      <div class="section-title" data-i18n="settingsBridgeSectionTitle">1. Connect to Hue Bridge</div>
 
       <div class="field">
-        <label>Bridge IP Address</label>
-        <input type="text" id="bridgeIp" placeholder="Discovering..." readonly>
-        <div class="help-text">Automatically discovering your bridge...</div>
+        <label data-i18n="settingsBridgeIpLabel">Bridge IP Address</label>
+        <input type="text" id="bridgeIp" placeholder="Discovering..."
+          data-i18n-placeholder="settingsBridgeIpPlaceholder" readonly>
+        <div class="help-text" data-i18n="settingsBridgeIpHelp">Automatically discovering your bridge...</div>
       </div>
 
       <div class="field" id="usernameField" class="hidden">
-        <label>Authentication</label>
-        <div class="help-text" id="authInstructions">Press the button on your Hue Bridge, then click
-          Authenticate below.</div>
+        <label data-i18n="settingsAuthenticationLabel">Authentication</label>
+        <div class="help-text" id="authInstructions" data-i18n="settingsAuthenticationHelp">
+          Press the button on your Hue Bridge, then click Authenticate below.
+        </div>
       </div>
 
       <div class="button-group">
-        <button class="btn-secondary" id="clearBridgeBtn">Clear Bridge</button>
-        <button class="btn-secondary" id="rediscoverBtn">Rediscover</button>
-        <button class="btn-primary" id="authenticateBtn" disabled>Authenticate</button>
+        <button class="btn-secondary" id="clearBridgeBtn" data-i18n="settingsClearBridgeBtn">Clear Bridge</button>
+        <button class="btn-secondary" id="rediscoverBtn" data-i18n="settingsRediscoverBtn">Rediscover</button>
+        <button class="btn-primary" id="authenticateBtn" disabled
+          data-i18n="settingsAuthenticateBtn">
+          Authenticate
+        </button>
       </div>
 
       <div class="status-message" id="bridgeStatus"></div>
@@ -453,10 +458,10 @@
 
     <!-- Step 2: Light Selection -->
     <div class="section hidden" id="lightSection">
-      <div class="section-title">2. Select Light</div>
+      <div class="section-title" data-i18n="settingsLightSectionTitle">2. Select Light</div>
 
       <div id="lightGrid" class="light-grid">
-        <div class="loading">Loading lights...</div>
+        <div class="loading" data-i18n="settingsLoadingLights">Loading lights...</div>
       </div>
 
       <div class="status-message" id="lightStatus"></div>
@@ -464,30 +469,30 @@
 
     <!-- Step 3: Meeting Color -->
     <div class="section hidden" id="colorSection">
-      <div class="section-title">3. Meeting Light Settings</div>
+      <div class="section-title" data-i18n="settingsColorSectionTitle">3. Meeting Light Settings</div>
 
       <div class="field">
-        <label>Color & Brightness</label>
+        <label data-i18n="settingsColorLabel">Color & Brightness</label>
         <div class="color-picker-container">
           <div class="color-preview" id="colorPreview"></div>
           <div class="color-inputs">
             <div class="slider-group">
               <div class="slider-label">
-                <span>Hue</span>
+                <span data-i18n="settingsColorHue">Hue</span>
                 <span id="hueValue">0°</span>
               </div>
               <input type="range" id="hueSlider" min="0" max="360" value="0">
             </div>
             <div class="slider-group">
               <div class="slider-label">
-                <span>Saturation</span>
+                <span data-i18n="settingsColorSaturation">Saturation</span>
                 <span id="satValue">100%</span>
               </div>
               <input type="range" id="satSlider" min="0" max="100" value="100">
             </div>
             <div class="slider-group">
               <div class="slider-label">
-                <span>Brightness</span>
+                <span data-i18n="settingsColorBrightness">Brightness</span>
                 <span id="briValue">100%</span>
               </div>
               <input type="range" id="briSlider" min="0" max="100" value="100">
@@ -497,14 +502,15 @@
       </div>
 
       <div class="button-group">
-        <button class="btn-secondary" id="testColorBtn">Test</button>
-        <button class="btn-primary" id="saveColorBtn">Save</button>
+        <button class="btn-secondary" id="testColorBtn" data-i18n="settingsTestColorBtn">Test</button>
+        <button class="btn-primary" id="saveColorBtn" data-i18n="settingsSaveColorBtn">Save</button>
       </div>
 
       <div class="status-message" id="colorStatus"></div>
     </div>
   </div>
 
+  <script src="../lib/i18n-init.js"></script>
   <script type="module" src="settings.js"></script>
 </body>
 

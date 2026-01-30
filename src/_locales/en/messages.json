@@ -1,0 +1,255 @@
+{
+  "___EXTENSION_METADATA___": {
+    "message": ""
+  },
+  
+  "extName": {
+    "message": "I'm in a meeting!",
+    "description": "The name of the extension shown in the browser"
+  },
+  "extDescription": {
+    "message": "Automatically changes the color of a Philips Hue light when you're in a Google Meet meeting.",
+    "description": "Extension description"
+  },
+
+  "___GLOBAL_STATUS_STATES___": {
+    "message": ""
+  },
+
+  "statusInMeeting": {
+    "message": "I'm in a meeting!",
+    "description": "Status when user is in a meeting"
+  },
+  "statusNotInMeeting": {
+    "message": "I'm available!",
+    "description": "Status when user is not in a meeting"
+  },
+  "statusChecking": {
+    "message": "Checking...",
+    "description": "Status when checking meeting status"
+  },
+  "statusError": {
+    "message": "Error",
+    "description": "Status when there is an error checking meeting status"
+  },
+
+  "___SETTINGS_GENERAL___": {
+    "message": ""
+  },
+
+  "settingsTitle": {
+    "message": "Settings",
+    "description": "Title for the settings page"
+  },
+  "settingsSubtitle": {
+    "message": "Configure Philips Hue integration",
+    "description": "Subtitle for the settings page"
+  },
+  "settingsSavedMessage": {
+    "message": "Settings saved",
+    "description": "Message displayed when the color settings are saved"
+  },
+
+  "___SETTINGS_STEP_1_BRIDGE_CONNECTION___": {
+    "message": ""
+  },
+
+  "settingsBridgeSectionTitle": {
+    "message": "1. Connect to Hue Bridge",
+    "description": "Title for the bridge connection section"
+  },
+  "settingsBridgeIpLabel": {
+    "message": "Bridge IP Address",
+    "description": "Label for the bridge IP address input field"
+  },
+  "settingsBridgeIpPlaceholder": {
+    "message": "Discovering...",
+    "description": "Placeholder text for the bridge IP address input field"
+  },
+  "settingsBridgeIpHelp": {
+    "message": "Automatically discovering your bridge...",
+    "description": "Help text for the bridge IP address input field"
+  },
+  "settingsDiscovering": {
+    "message": "Discovering bridge...",
+    "description": "Status message when discovering the Hue bridge"
+  },
+  "settingsRediscoverBtn": {
+    "message": "Rediscover",
+    "description": "Button text to rediscover the Hue Bridge"
+  },
+  "settingsClearBridgeBtn": {
+    "message": "Clear Bridge",
+    "description": "Button text to clear the bridge settings"
+  },
+  "settingsBridgeCleared": {
+    "message": "Bridge cleared. Click Rediscover to start over.",
+    "description": "Message displayed when the bridge settings are cleared"
+  },
+
+  "___SETTINGS_STEP_2_AUTHENTICATION___": {
+    "message": ""
+  },
+
+  "settingsAuthenticationLabel": {
+    "message": "Authentication",
+    "description": "Label for the authentication section"
+  },
+  "settingsAuthenticationHelp": {
+    "message": "Press the button on your Hue Bridge, then click Authenticate below.",
+    "description": "Help text for the authentication section"
+  },
+  "settingsAuthenticateBtn": {
+    "message": "Authenticate",
+    "description": "Button text to authenticate with the Hue Bridge"
+  },
+  "settingsPressButton": {
+    "message": "Press the button on your bridge now...",
+    "description": "Instruction to press the button on the Hue bridge"
+  },
+  "settingsAuthenticationSuccess": {
+    "message": "Found bridge at $bridgeIp$",
+    "description": "Message displayed when authentication is successful",
+    "placeholders": {
+      "bridgeIp": {
+        "content": "$bridgeIp$",
+        "example": "192.168.1.100"
+      }
+    }
+  },
+  "settingsAuthenticationSuccessShort": {
+    "message": "Authenticated successfully",
+    "description": "Short message displayed when authentication is successful"
+  },
+  "settingsAlreadyAuthenticated": {
+    "message": "Already authenticated",
+    "description": "Message displayed when already authenticated"
+  },
+
+  "___SETTINGS_STEP_3_LIGHT_SELECTION___": {
+    "message": ""
+  },
+
+  "settingsLightSectionTitle": {
+    "message": "2. Select Light",
+    "description": "Title for the light selection section"
+  },
+  "settingsLoadingLights": {
+    "message": "Loading lights...",
+    "description": "Loading message for lights"
+  },
+  "settingsLightSelected": {
+    "message": "$lightName$ selected",
+    "description": "Message displayed when a light is selected",
+    "placeholders": {
+      "lightName": {
+        "content": "$lightName$",
+        "example": "Living Room Lamp"
+      }
+    }
+  },
+
+  "___SETTINGS_STEP_4_COLOR_CONFIG___": {
+    "message": ""
+  },
+
+  "settingsColorSectionTitle": {
+    "message": "3. Meeting Light Settings",
+    "description": "Title for the meeting light settings section"
+  },
+  "settingsColorLabel": {
+    "message": "Color & Brightness",
+    "description": "Label for the color and brightness settings"
+  },
+  "settingsTestColorBtn": {
+    "message": "Test",
+    "description": "Button text to test the selected color"
+  },
+  "settingsTestingWillRestore": {
+    "message": "Testing... will restore in 2s",
+    "description": "Message displayed during test"
+  },
+  "settingsLightRestored": {
+    "message": "Light restored",
+    "description": "Message displayed when the light has been restored"
+  },
+  "settingsSaveColorBtn": {
+    "message": "Save",
+    "description": "Button text to save the selected color"
+  },
+  "settingsColorHue": {
+    "message": "Hue",
+    "description": "Label for the hue slider"
+  },
+  "settingsColorSaturation": {
+    "message": "Saturation",
+    "description": "Label for the saturation slider"
+  },
+  "settingsColorBrightness": {
+    "message": "Brightness",
+    "description": "Label for the brightness slider"
+  },
+
+  "___ERROR_MESSAGES___": {
+    "message": ""
+  },
+
+  "settingsNoBridgeFound": {
+    "message": "No bridge found. Make sure your bridge is on the same network.",
+    "description": "Error message when no bridge is found"
+  },
+  "settingsBridgeIpInvalid": {
+    "message": "Invalid bridge IP received",
+    "description": "Error message when an invalid bridge IP is received"
+  },
+  "settingsBridgeIpInvalidMessage": {
+    "message": "Invalid bridge IP address",
+    "description": "Error message for invalid bridge IP"
+  },
+  "settingsBridgeIpInvalidFormat": {
+    "message": "Invalid IP address format",
+    "description": "Error message when the bridge IP address format is invalid"
+  },
+  "settingsBridgeIpMissing": {
+    "message": "Please discover or enter bridge IP first",
+    "description": "Error message when trying to authenticate without a bridge IP"
+  },
+  "settingsLightNotConnected": {
+    "message": "Not connected to bridge",
+    "description": "Error message when not connected to the Hue bridge"
+  },
+  "settingsFailedToLoadLights": {
+    "message": "Failed to load lights",
+    "description": "Error message when failing to load lights"
+  },
+  "settingsNotConfiguredError": {
+    "message": "Please complete bridge and light setup first",
+    "description": "Error message when setup is incomplete"
+  },
+  "settingsFailedToGetLightState": {
+    "message": "Failed to get current light state",
+    "description": "Error message when failing to get the current state"
+  },
+  "settingsFailedToSetTestColor": {
+    "message": "Failed to set test color",
+    "description": "Error message when failing to set the test color"
+  },
+  "settingsPressButtonError": {
+    "message": "Press the button on your bridge and try again",
+    "description": "Error message when the user hasn't pressed the button on the Hue bridge"
+  },
+  "settingsUnexpectedResponseError": {
+    "message": "Unexpected response from bridge",
+    "description": "Error message when the bridge returns an unexpected response"
+  },
+  "settingsConnectionFailedError": {
+    "message": "Connection failed: $message$",
+    "description": "Error message when connection to the bridge fails",
+    "placeholders": {
+      "message": {
+        "content": "$1",
+        "example": "Network unreachable"
+      }
+    }
+  }
+}

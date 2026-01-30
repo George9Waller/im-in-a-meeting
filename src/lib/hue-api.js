@@ -217,7 +217,7 @@ export async function discoverBridge() {
  */
 export async function authenticateBridge(bridgeIp) {
   if (!isValidIp(bridgeIp)) {
-    return { success: false, error: 'Invalid bridge IP address' };
+    return { success: false, error: chrome.i18n.getMessage('settingsBridgeIpInvalidMessage') };
   }
 
   try {
@@ -229,7 +229,7 @@ export async function authenticateBridge(bridgeIp) {
 
     if (result[0]?.error) {
       if (result[0].error.type === 101) {
-        return { success: false, error: 'Press the button on your bridge and try again' };
+        return { success: false, error: chrome.i18n.getMessage('settingsPressButtonError') };
       }
       return { success: false, error: result[0].error.description };
     }
@@ -238,8 +238,8 @@ export async function authenticateBridge(bridgeIp) {
       return { success: true, username: result[0].success.username };
     }
 
-    return { success: false, error: 'Unexpected response from bridge' };
+    return { success: false, error: chrome.i18n.getMessage('settingsUnexpectedResponseError') };
   } catch (error) {
-    return { success: false, error: `Connection failed: ${error.message}` };
+    return { success: false, error: chrome.i18n.getMessage('settingsConnectionFailedError', [error.message]) };
   }
 }

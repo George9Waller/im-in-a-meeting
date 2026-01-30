@@ -101,7 +101,7 @@
   async function updateMeetingStateIndicator(inMeeting) {
     if (inMeeting) {
       statusEl.className = 'status in-meeting';
-      statusText.textContent = 'IN MEETING';
+      statusText.textContent = chrome.i18n.getMessage('statusInMeeting');
 
       // Fetch and apply the meeting color
       if (!meetingColor) {
@@ -110,7 +110,7 @@
       applyMeetingColorStyles(meetingColor);
     } else {
       statusEl.className = 'status not-in-meeting';
-      statusText.textContent = 'AVAILABLE';
+      statusText.textContent = chrome.i18n.getMessage('statusNotInMeeting');
       clearMeetingColorStyles();
     }
   }
@@ -129,7 +129,7 @@
       await updateMeetingStateIndicator(response.inMeeting);
     } catch (error) {
       console.error('[POPUP] Error fetching meeting state:', error);
-      statusText.textContent = 'ERROR';
+      statusText.textContent = chrome.i18n.getMessage('statusError');
     }
   }
 

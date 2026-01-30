@@ -129,13 +129,13 @@ function updateColorPreview() {
  * Discover Hue bridge on the network
  */
 async function handleDiscoverBridge() {
-  showStatus('bridgeStatus', 'Discovering bridge...', 'info');
+  showStatus('bridgeStatus', chrome.i18n.getMessage('settingsDiscovering'), 'info');
 
   const bridgeIp = await discoverBridge();
 
   if (bridgeIp) {
     if (!isValidIp(bridgeIp)) {
-      showStatus('bridgeStatus', 'Invalid bridge IP received', 'error');
+      showStatus('bridgeStatus', chrome.i18n.getMessage('settingsBridgeIpInvalid'), 'error');
       enableManualIpEntry();
       return;
     }
@@ -144,14 +144,14 @@ async function handleDiscoverBridge() {
     elements.bridgeIp.value = bridgeIp;
     elements.authenticateBtn.disabled = false;
     elements.usernameField.classList.remove('hidden');
-    showStatus('bridgeStatus', `Found bridge at ${bridgeIp}`, 'success');
+    showStatus('bridgeStatus', chrome.i18n.getMessage('settingsAuthenticationSuccess', [bridgeIp]), 'success');
 
     // If we already have a username, try to authenticate
     if (config.username) {
       await testAuthentication();
     }
   } else {
-    showStatus('bridgeStatus', 'No bridge found. Make sure your bridge is on the same network.', 'error');
+    showStatus('bridgeStatus', chrome.i18n.getMessage('settingsNoBridgeFound'), 'error');
     enableManualIpEntry();
   }
 }
@@ -174,7 +174,7 @@ async function testAuthentication() {
   if (!config.bridgeIp || !config.username) return false;
 
   if (!isValidIp(config.bridgeIp)) {
-    showStatus('bridgeStatus', 'Invalid bridge IP address', 'error');
+    showStatus('bridgeStatus', chrome.i18n.getMessage('settingsBridgeIpInvalidMessage'), 'error');
     return false;
   }
 
@@ -182,7 +182,7 @@ async function testAuthentication() {
   const lights = await hueClient.getLights();
 
   if (lights) {
-    showStatus('bridgeStatus', 'Already authenticated!', 'success');
+    showStatus('bridgeStatus', chrome.i18n.getMessage('settingsAlreadyAuthenticated'), 'success');
     await loadLights();
     return true;
   }
@@ -195,16 +195,16 @@ async function testAuthentication() {
  */
 async function handleAuthenticate() {
   if (!config.bridgeIp) {
-    showStatus('bridgeStatus', 'Please discover or enter bridge IP first', 'error');
+    showStatus('bridgeStatus', chrome.i18n.getMessage('settingsBridgeIpMissing'), 'error');
     return;
   }
 
   if (!isValidIp(config.bridgeIp)) {
-    showStatus('bridgeStatus', 'Invalid IP address format', 'error');
+    showStatus('bridgeStatus', chrome.i18n.getMessage('settingsBridgeIpInvalidFormat'), 'error');
     return;
   }
 
-  showStatus('bridgeStatus', 'Press the button on your bridge now...', 'info');
+  showStatus('bridgeStatus', chrome.i18n.getMessage('settingsPressButton'), 'info');
 
   const result = await authenticateBridge(config.bridgeIp);
 
@@ -216,7 +216,7 @@ async function handleAuthenticate() {
     });
 
     hueClient = new HueClient(config.bridgeIp, config.username);
-    showStatus('bridgeStatus', 'Authenticated successfully!', 'success');
+    showStatus('bridgeStatus', chrome.i18n.getMessage('settingsAuthenticationSuccessShort'), 'success');
     updateClearButtonVisibility();
     await loadLights();
   } else {
@@ -243,14 +243,14 @@ async function handleClearBridge() {
 
   // Reset UI
   elements.bridgeIp.value = '';
-  elements.bridgeIp.placeholder = 'Discovering...';
+  elements.bridgeIp.placeholder = chrome.i18n.getMessage('settingsBridgeIpPlaceholder');
   elements.bridgeIp.readOnly = true;
   elements.authenticateBtn.disabled = true;
   elements.usernameField.classList.add('hidden');
   elements.lightSection.classList.add('hidden');
   elements.colorSection.classList.add('hidden');
 
-  showStatus('bridgeStatus', 'Bridge cleared. Click Rediscover to start over.', 'success');
+  showStatus('bridgeStatus', chrome.i18n.getMessage('settingsBridgeCleared'), 'success');
   updateClearButtonVisibility();
 }
 
@@ -262,18 +262,19 @@ async function handleClearBridge() {
  * Load available lights from the bridge
  */
 async function loadLights() {
+  const loadingLightsMessage = chrome.i18n.getMessage('settingsLoadingLights');
   elements.lightSection.classList.remove('hidden');
-  elements.lightGrid.innerHTML = '<div class="loading">Loading lights...</div>';
+  elements.lightGrid.innerHTML = `<div class="loading">${loadingLightsMessage}</div>`;
 
   if (!hueClient) {
-    showStatus('lightStatus', 'Not connected to bridge', 'error');
+    showStatus('lightStatus', chrome.i18n.getMessage('settingsNotConnectedToBridge'), 'error');
     return;
   }
 
   const lights = await hueClient.getLights();
 
   if (!lights) {
-    showStatus('lightStatus', 'Failed to load lights', 'error');
+    showStatus('lightStatus', chrome.i18n.getMessage('settingsFailedToLoadLights'), 'error');
     return;
   }
 
@@ -294,7 +295,7 @@ async function loadLights() {
       <div class="light-id">ID: ${escapeHtml(id)}</div>
     `;
 
-    card.addEventListener('click', () => selectLight(id, card));
+    card.addEventListener('click', () => selectLight(id, light.name, card));
     elements.lightGrid.appendChild(card);
   });
 }
@@ -313,9 +314,10 @@ function escapeHtml(str) {
 /**
  * Select a light
  * @param {string} lightId
+ * @param {string} lightName
  * @param {HTMLElement} cardElement
  */
-async function selectLight(lightId, cardElement) {
+async function selectLight(lightId, lightName, cardElement) {
   // Remove previous selection
   document.querySelectorAll('.light-card').forEach(card => {
     card.classList.remove('selected');
@@ -326,7 +328,7 @@ async function selectLight(lightId, cardElement) {
   config.lightId = lightId;
 
   await saveBridgeConfig({ lightId });
-  showStatus('lightStatus', 'Light selected!', 'success');
+  showStatus('lightStatus', chrome.i18n.getMessage('settingsLightSelected', [lightName]), 'success');
 
   // Show color section
   elements.colorSection.classList.remove('hidden');
@@ -341,7 +343,7 @@ async function selectLight(lightId, cardElement) {
  */
 async function handleTestColor() {
   if (!hueClient || !config.lightId) {
-    showStatus('colorStatus', 'Please complete bridge and light setup first', 'error');
+    showStatus('colorStatus', chrome.i18n.getMessage('settingsNotConfiguredError'), 'error');
     return;
   }
 
@@ -349,7 +351,7 @@ async function handleTestColor() {
   const savedState = await hueClient.getLightState(config.lightId);
 
   if (!savedState) {
-    showStatus('colorStatus', 'Failed to get current light state', 'error');
+    showStatus('colorStatus', chrome.i18n.getMessage('settingsFailedToGetLightState'), 'error');
     return;
   }
 
@@ -362,16 +364,16 @@ async function handleTestColor() {
   });
 
   if (!success) {
-    showStatus('colorStatus', 'Failed to set test color', 'error');
+    showStatus('colorStatus', chrome.i18n.getMessage('settingsFailedToSetTestColor'), 'error');
     return;
   }
 
-  showStatus('colorStatus', 'Testing... will restore in 2s', 'info');
+  showStatus('colorStatus', chrome.i18n.getMessage('settingsTestingWillRestore'), 'info');
 
   // Restore original state after 2 seconds
   setTimeout(async () => {
     await hueClient.setLightState(config.lightId, savedState);
-    showStatus('colorStatus', 'Light restored', 'success');
+    showStatus('colorStatus', chrome.i18n.getMessage('settingsLightRestored'), 'success');
   }, 2000);
 }
 
@@ -385,7 +387,7 @@ async function handleSaveColor() {
     bri: config.meetingBri
   });
 
-  showStatus('colorStatus', 'Settings saved!', 'success');
+  showStatus('colorStatus', chrome.i18n.getMessage('settingsSavedMessage'), 'success');
 }
 
 // ============================================================================
@@ -439,7 +441,7 @@ function setupEventListeners() {
   elements.bridgeIp.addEventListener('change', (e) => {
     const ip = e.target.value.trim();
     if (ip && !isValidIp(ip)) {
-      showStatus('bridgeStatus', 'Invalid IP address format', 'error');
+      showStatus('bridgeStatus', chrome.i18n.getMessage('settingsBridgeIpInvalidFormat'), 'error');
       return;
     }
     config.bridgeIp = ip;

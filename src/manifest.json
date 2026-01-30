@@ -1,6 +1,7 @@
 {
-  "name": "I'm in a meeting!",
-  "description": "Automatically changes the color of a Philips Hue light when you're in a Google Meet meeting.",
+  "name": "__MSG_extName__",
+  "description": "__MSG_extDescription__",
+  "default_locale": "fr",
   "version": "0.0.2",
   "manifest_version": 3,
   "icons": {
