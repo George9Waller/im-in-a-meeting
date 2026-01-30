@@ -1,21 +1,29 @@
 {
   "name": "I'm in a meeting!",
-  "description": "Automatically changes the color of a Phillips Hue light when you're in a Google Meet meeting.",
-  "version": "0.0.1",
+  "description": "Automatically changes the color of a Philips Hue light when you're in a Google Meet meeting.",
+  "version": "0.0.2",
   "manifest_version": 3,
+  "icons": {
+    "96": "icons/icon96.png"
+  },
   "permissions": [
     "tabs",
     "storage"
   ],
   "host_permissions": [
     "https://meet.google.com/*",
-    "https://discovery.meethue.com/"
+    "https://discovery.meethue.com/",
+    "http://*/*"
   ],
   "action": {
-    "default_popup": "popup/popup.html"
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "96": "icons/icon96.png"
+    }
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "content_scripts": [
     {

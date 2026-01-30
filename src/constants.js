@@ -1,22 +1,12 @@
-// Message types
-const MESSAGE_TYPES = {
+/**
+ * Constants for content script (meet-detector.js)
+ * Note: Content scripts cannot use ES modules, so this is a standalone file.
+ * ES module users should import from lib/storage.js instead.
+ */
+
+// Message types for communication with background script
+const MESSAGE_TYPES = Object.freeze({
   MEETING_STATUS: 'meetingStatus',
-  GET_STATUS: 'getStatus'
-};
-
-const STORAGE_KEYS = {
-  BRIDGE_IP: 'bridgeIp',
-  USERNAME: 'username',
-  LIGHT_ID: 'lightId',
-  MEETING_HUE: 'meetingHue',
-  MEETING_SAT: 'meetingSat',
-  MEETING_BRI: 'meetingBri',
-  PREVIOUS_LIGHT_STATE: 'previousLightState'
-};
-
-// Hue API conversion
-const HUE_API = {
-  MAX_HUE: 65535,
-  MAX_SAT: 254,
-  MAX_BRI: 254
-};
+  GET_STATUS: 'getStatus',
+  STATUS_CHANGED: 'statusChanged'
+});
