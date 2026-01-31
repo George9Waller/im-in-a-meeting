@@ -2,7 +2,6 @@
   "___EXTENSION_METADATA___": {
     "message": ""
   },
-  
   "extName": {
     "message": "I'm in a meeting!",
     "description": "The name of the extension shown in the browser"
@@ -11,11 +10,9 @@
     "message": "Automatically changes the color of a Philips Hue light when you're in a Google Meet meeting.",
     "description": "Extension description"
   },
-
   "___GLOBAL_STATUS_STATES___": {
     "message": ""
   },
-
   "statusInMeeting": {
     "message": "I'm in a meeting!",
     "description": "Status when user is in a meeting"
@@ -23,6 +20,10 @@
   "statusNotInMeeting": {
     "message": "I'm available!",
     "description": "Status when user is not in a meeting"
+  },
+  "statusWarning": {
+    "message": "I'm about to be in a meeting!",
+    "description": "Status when there is a warning state"
   },
   "statusChecking": {
     "message": "Checking...",
@@ -32,11 +33,9 @@
     "message": "Error",
     "description": "Status when there is an error checking meeting status"
   },
-
   "___SETTINGS_GENERAL___": {
     "message": ""
   },
-
   "settingsTitle": {
     "message": "Settings",
     "description": "Title for the settings page"
@@ -49,11 +48,9 @@
     "message": "Settings saved",
     "description": "Message displayed when the color settings are saved"
   },
-
   "___SETTINGS_STEP_1_BRIDGE_CONNECTION___": {
     "message": ""
   },
-
   "settingsBridgeSectionTitle": {
     "message": "1. Connect to Hue Bridge",
     "description": "Title for the bridge connection section"
@@ -86,11 +83,9 @@
     "message": "Bridge cleared. Click Rediscover to start over.",
     "description": "Message displayed when the bridge settings are cleared"
   },
-
   "___SETTINGS_STEP_2_AUTHENTICATION___": {
     "message": ""
   },
-
   "settingsAuthenticationLabel": {
     "message": "Authentication",
     "description": "Label for the authentication section"
@@ -125,11 +120,9 @@
     "message": "Already authenticated",
     "description": "Message displayed when already authenticated"
   },
-
   "___SETTINGS_STEP_3_LIGHT_SELECTION___": {
     "message": ""
   },
-
   "settingsLightSectionTitle": {
     "message": "2. Select Light",
     "description": "Title for the light selection section"
@@ -148,11 +141,9 @@
       }
     }
   },
-
   "___SETTINGS_STEP_4_COLOR_CONFIG___": {
     "message": ""
   },
-
   "settingsColorSectionTitle": {
     "message": "3. Meeting Light Settings",
     "description": "Title for the meeting light settings section"
@@ -189,11 +180,24 @@
     "message": "Brightness",
     "description": "Label for the brightness slider"
   },
-
+  "___SETTINGS_STEP_5_WARNING_COLOR_CONFIG___": {
+    "message": ""
+  },
+  "settingsWarningColorSectionTitle": {
+    "message": "4. Warning Light Settings",
+    "description": "Title for the warning color section"
+  },
+  "settingsWarningColorSectionSubtitle": {
+    "message": "Optionally set a color when you have a Google Meet tab open but haven't joined a meeting yet.",
+    "description": "Subtitle for the warning color section"
+  },
+  "settingsEnableWarningColorLabel": {
+    "message": "Enable Warning Color",
+    "description": "Label for the enable warning color checkbox"
+  },
   "___ERROR_MESSAGES___": {
     "message": ""
   },
-
   "settingsNoBridgeFound": {
     "message": "No bridge found. Make sure your bridge is on the same network.",
     "description": "Error message when no bridge is found"
@@ -251,5 +255,9 @@
         "example": "Network unreachable"
       }
     }
+  },
+  "settingsNotConnectedToBridge": {
+    "message": "Not connected to bridge",
+    "description": "Error message when not connected to the Hue bridge"
   }
 }

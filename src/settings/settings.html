@@ -437,7 +437,7 @@
         <div class="help-text" data-i18n="settingsBridgeIpHelp">Automatically discovering your bridge...</div>
       </div>
 
-      <div class="field" id="usernameField" class="hidden">
+      <div class="field hidden" id="usernameField">
         <label data-i18n="settingsAuthenticationLabel">Authentication</label>
         <div class="help-text" id="authInstructions" data-i18n="settingsAuthenticationHelp">
           Press the button on your Hue Bridge, then click Authenticate below.
@@ -507,6 +507,58 @@
       </div>
 
       <div class="status-message" id="colorStatus"></div>
+    </div>
+
+    <!-- Step 4: Meeting Warning color -->
+    <div class="section hidden" id="warningColorSection">
+      <div class="section-title" data-i18n="settingsWarningColorSectionTitle">4. Meeting Warning Light Settings</div>
+      <p class="subtitle" data-i18n="settingsWarningColorSectionSubtitle">
+        Optionally set a color when you have a Google Meet tab focused but you have not joined a meeting yet.
+      </p>
+
+      <div class="field">
+        <label for="enableWarningColor" data-i18n="settingsEnableWarningColorLabel">Enable Warning Color</label>
+        <input type="checkbox" id="enableWarningColor">
+      </div>
+
+      <div id="warningColorPickerField">
+        <div class="field">
+          <label data-i18n="settingsColorLabel">Color & Brightness</label>
+          <div class="color-picker-container">
+            <div class="color-preview" id="warningColorPreview"></div>
+            <div class="color-inputs">
+              <div class="slider-group">
+                <div class="slider-label">
+                  <span data-i18n="settingsColorHue">Hue</span>
+                  <span id="warningHueValue">0°</span>
+                </div>
+                <input type="range" id="warningHueSlider" min="0" max="360" value="0">
+              </div>
+              <div class="slider-group">
+                <div class="slider-label">
+                  <span data-i18n="settingsColorSaturation">Saturation</span>
+                  <span id="warningSatValue">100%</span>
+                </div>
+                <input type="range" id="warningSatSlider" min="0" max="100" value="100">
+              </div>
+              <div class="slider-group">
+                <div class="slider-label">
+                  <span data-i18n="settingsColorBrightness">Brightness</span>
+                  <span id="warningBriValue">100%</span>
+                </div>
+                <input type="range" id="warningBriSlider" min="0" max="100" value="100">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button class="btn-secondary" id="testWarningColorBtn" data-i18n="settingsTestColorBtn">Test</button>
+          <button class="btn-primary" id="saveWarningColorBtn" data-i18n="settingsSaveColorBtn">Save</button>
+        </div>
+
+        <div class="status-message" id="warningColorStatus"></div>
+      </div>
     </div>
   </div>
 

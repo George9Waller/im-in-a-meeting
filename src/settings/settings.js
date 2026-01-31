@@ -20,7 +20,9 @@ import {
   clearBridgeConfig,
   getMeetingColor,
   saveMeetingColor,
-  getFullConfig
+  getFullConfig,
+  saveWarningColorEnabled,
+  saveWarningColor
 } from '../lib/storage.js';
 
 // ============================================================================
@@ -33,7 +35,11 @@ let config = {
   lightId: '',
   meetingHue: 0,
   meetingSat: 100,
-  meetingBri: 100
+  meetingBri: 100,
+  warningColorEnabled: false,
+  warningHue: 0,
+  warningSat: 100,
+  warningBri: 100
 };
 
 let hueClient = null;
@@ -58,16 +64,39 @@ const elements = {
 
   // Color section
   colorSection: document.getElementById('colorSection'),
-  colorPreview: document.getElementById('colorPreview'),
-  hueSlider: document.getElementById('hueSlider'),
-  satSlider: document.getElementById('satSlider'),
-  briSlider: document.getElementById('briSlider'),
-  hueValue: document.getElementById('hueValue'),
-  satValue: document.getElementById('satValue'),
-  briValue: document.getElementById('briValue'),
   testColorBtn: document.getElementById('testColorBtn'),
   saveColorBtn: document.getElementById('saveColorBtn'),
-  colorStatus: document.getElementById('colorStatus')
+
+  // Warning Color section
+  warningColorSection: document.getElementById('warningColorSection'),
+  enableWarningColor: document.getElementById('enableWarningColor'),
+  warningColorPickerField: document.getElementById('warningColorPickerField'),
+  testWarningColorBtn: document.getElementById('testWarningColorBtn'),
+  saveWarningColorBtn: document.getElementById('saveWarningColorBtn'),
+
+  // Color elements
+  meetingColorPicker: {
+    configPrefix: 'meeting',
+    preview: document.getElementById('colorPreview'),
+    hueSlider: document.getElementById('hueSlider'),
+    satSlider: document.getElementById('satSlider'),
+    briSlider: document.getElementById('briSlider'),
+    hueValue: document.getElementById('hueValue'),
+    satValue: document.getElementById('satValue'),
+    briValue: document.getElementById('briValue'),
+    statusId: 'colorStatus',
+  },
+  warningColorPicker: {
+    configPrefix: 'warning',
+    preview: document.getElementById('warningColorPreview'),
+    hueSlider: document.getElementById('warningHueSlider'),
+    satSlider: document.getElementById('warningSatSlider'),
+    briSlider: document.getElementById('warningBriSlider'),
+    hueValue: document.getElementById('warningHueValue'),
+    satValue: document.getElementById('warningSatValue'),
+    briValue: document.getElementById('warningBriValue'),
+    statusId: 'warningColorStatus',
+  }
 };
 
 // ============================================================================
@@ -103,22 +132,23 @@ function updateClearButtonVisibility() {
 
 /**
  * Update the color preview based on current slider values
+ * @param {{configPrefix: string, hueSlider: HTMLInputElement, satSlider: HTMLInputElement, briSlider: HTMLInputElement, hueValue: HTMLElement, satValue: HTMLElement, briValue: HTMLElement, colorPreview: HTMLElement, statusId: string}} colorElements
  */
-function updateColorPreview() {
-  const hue = parseInt(elements.hueSlider.value);
-  const sat = parseInt(elements.satSlider.value);
-  const bri = parseInt(elements.briSlider.value);
+function updateColorPreview(colorElements) {
+  const hue = parseInt(colorElements.hueSlider.value);
+  const sat = parseInt(colorElements.satSlider.value);
+  const bri = parseInt(colorElements.briSlider.value);
 
-  elements.hueValue.textContent = `${hue}°`;
-  elements.satValue.textContent = `${sat}%`;
-  elements.briValue.textContent = `${bri}%`;
+  colorElements.hueValue.textContent = `${hue}°`;
+  colorElements.satValue.textContent = `${sat}%`;
+  colorElements.briValue.textContent = `${bri}%`;
 
   // Convert to CSS HSL (approximate)
-  elements.colorPreview.style.backgroundColor = `hsl(${hue}, ${sat}%, ${bri / 2}%)`;
+  colorElements.preview.style.backgroundColor = `hsl(${hue}, ${sat}%, ${bri / 2}%)`;
 
-  config.meetingHue = hue;
-  config.meetingSat = sat;
-  config.meetingBri = bri;
+  config[`${colorElements.configPrefix}Hue`] = hue;
+  config[`${colorElements.configPrefix}Sat`] = sat;
+  config[`${colorElements.configPrefix}Bri`] = bri;
 }
 
 // ============================================================================
@@ -237,7 +267,11 @@ async function handleClearBridge() {
     lightId: '',
     meetingHue: config.meetingHue,
     meetingSat: config.meetingSat,
-    meetingBri: config.meetingBri
+    meetingBri: config.meetingBri,
+    warningColorEnabled: config.warningColorEnabled,
+    warningHue: config.warningHue,
+    warningSat: config.warningSat,
+    warningBri: config.warningBri
   };
   hueClient = null;
 
@@ -249,6 +283,7 @@ async function handleClearBridge() {
   elements.usernameField.classList.add('hidden');
   elements.lightSection.classList.add('hidden');
   elements.colorSection.classList.add('hidden');
+  elements.warningColorSection.classList.add('hidden');
 
   showStatus('bridgeStatus', chrome.i18n.getMessage('settingsBridgeCleared'), 'success');
   updateClearButtonVisibility();
@@ -330,8 +365,9 @@ async function selectLight(lightId, lightName, cardElement) {
   await saveBridgeConfig({ lightId });
   showStatus('lightStatus', chrome.i18n.getMessage('settingsLightSelected', [lightName]), 'success');
 
-  // Show color section
+  // Show color sections
   elements.colorSection.classList.remove('hidden');
+  elements.warningColorSection.classList.remove('hidden');
 }
 
 // ============================================================================
@@ -340,10 +376,11 @@ async function selectLight(lightId, lightName, cardElement) {
 
 /**
  * Test the current color on the selected light
+ * @param {{configPrefix: string, hueSlider: HTMLInputElement, satSlider: HTMLInputElement, briSlider: HTMLInputElement, hueValue: HTMLElement, satValue: HTMLElement, briValue: HTMLElement, colorPreview: HTMLElement, statusId: string}} colorElements
  */
-async function handleTestColor() {
+async function handleTestColor(colorElements) {
   if (!hueClient || !config.lightId) {
-    showStatus('colorStatus', chrome.i18n.getMessage('settingsNotConfiguredError'), 'error');
+    showStatus(colorElements.statusId, chrome.i18n.getMessage('settingsNotConfiguredError'), 'error');
     return;
   }
 
@@ -351,43 +388,75 @@ async function handleTestColor() {
   const savedState = await hueClient.getLightState(config.lightId);
 
   if (!savedState) {
-    showStatus('colorStatus', chrome.i18n.getMessage('settingsFailedToGetLightState'), 'error');
+    showStatus(colorElements.statusId, chrome.i18n.getMessage('settingsFailedToGetLightState'), 'error');
     return;
   }
 
   // Apply test color
   const success = await hueClient.setLightState(config.lightId, {
     on: true,
-    hue: hueToApi(config.meetingHue),
-    sat: percentToApi(config.meetingSat),
-    bri: percentToApi(config.meetingBri)
+    hue: hueToApi(config[`${colorElements.configPrefix}Hue`]),
+    sat: percentToApi(config[`${colorElements.configPrefix}Sat`]),
+    bri: percentToApi(config[`${colorElements.configPrefix}Bri`])
   });
 
   if (!success) {
-    showStatus('colorStatus', chrome.i18n.getMessage('settingsFailedToSetTestColor'), 'error');
+    showStatus(colorElements.statusId, chrome.i18n.getMessage('settingsFailedToSetTestColor'), 'error');
     return;
   }
 
-  showStatus('colorStatus', chrome.i18n.getMessage('settingsTestingWillRestore'), 'info');
+  showStatus(colorElements.statusId, chrome.i18n.getMessage('settingsTestingWillRestore'), 'info');
 
   // Restore original state after 2 seconds
   setTimeout(async () => {
     await hueClient.setLightState(config.lightId, savedState);
-    showStatus('colorStatus', chrome.i18n.getMessage('settingsLightRestored'), 'success');
+    showStatus(colorElements.statusId, chrome.i18n.getMessage('settingsLightRestored'), 'success');
   }, 2000);
 }
 
 /**
  * Save color settings
+ * @param {{configPrefix: string, hueSlider: HTMLInputElement, satSlider: HTMLInputElement, briSlider: HTMLInputElement, hueValue: HTMLElement, satValue: HTMLElement, briValue: HTMLElement, colorPreview: HTMLElement, statusId: string}} colorElements
  */
-async function handleSaveColor() {
-  await saveMeetingColor({
-    hue: config.meetingHue,
-    sat: config.meetingSat,
-    bri: config.meetingBri
+async function handleSaveColor(colorElements) {
+  const saveMethod = colorElements.configPrefix === 'meeting' ? saveMeetingColor : saveWarningColor;
+  await saveMethod({
+    hue: config[`${colorElements.configPrefix}Hue`],
+    sat: config[`${colorElements.configPrefix}Sat`],
+    bri: config[`${colorElements.configPrefix}Bri`]
   });
 
-  showStatus('colorStatus', chrome.i18n.getMessage('settingsSavedMessage'), 'success');
+  showStatus(colorElements.statusId, chrome.i18n.getMessage('settingsSavedMessage'), 'success');
+}
+
+// ============================================================================
+// Warning Color Settings
+// ============================================================================
+
+/**
+ * Set warning color picker visibility
+ * @param {boolean} visible
+ */
+function updateWarningColorPickerVisibility(visible) {
+  if (visible) {
+    elements.warningColorPickerField.classList.remove('hidden');
+  } else {
+    elements.warningColorPickerField.classList.add('hidden');
+  }
+}
+
+
+/**
+ * Handle toggling the warning color setting
+ */
+async function handleWarningColorToggle() {
+  const enabled = elements.enableWarningColor.checked;
+  elements.enableWarningColor.disabled = true;
+
+  await saveWarningColorEnabled(enabled);
+  elements.enableWarningColor.disabled = false;
+
+  updateWarningColorPickerVisibility(enabled);
 }
 
 // ============================================================================
@@ -406,16 +475,28 @@ async function loadConfig() {
     lightId: fullConfig.lightId || '',
     meetingHue: fullConfig.meetingHue,
     meetingSat: fullConfig.meetingSat,
-    meetingBri: fullConfig.meetingBri
+    meetingBri: fullConfig.meetingBri,
+    warningColorEnabled: fullConfig.warningColorEnabled,
+    warningHue: fullConfig.warningHue,
+    warningSat: fullConfig.warningSat,
+    warningBri: fullConfig.warningBri
   };
 
   // Update color sliders
-  elements.hueSlider.value = config.meetingHue;
-  elements.satSlider.value = config.meetingSat;
-  elements.briSlider.value = config.meetingBri;
-  updateColorPreview();
+  elements.meetingColorPicker.hueSlider.value = config.meetingHue;
+  elements.meetingColorPicker.satSlider.value = config.meetingSat;
+  elements.meetingColorPicker.briSlider.value = config.meetingBri;
+  elements.warningColorPicker.hueSlider.value = config.warningHue;
+  elements.warningColorPicker.satSlider.value = config.warningSat;
+  elements.warningColorPicker.briSlider.value = config.warningBri;
+  updateColorPreview(elements.meetingColorPicker);
+  updateColorPreview(elements.warningColorPicker);
 
   updateClearButtonVisibility();
+
+  // Update warning color picker visibility
+  elements.enableWarningColor.checked = config.warningColorEnabled;
+  updateWarningColorPickerVisibility(config.warningColorEnabled);
 
   return config;
 }
@@ -430,12 +511,22 @@ function setupEventListeners() {
   elements.authenticateBtn.addEventListener('click', handleAuthenticate);
 
   // Color controls
-  elements.testColorBtn.addEventListener('click', handleTestColor);
-  elements.saveColorBtn.addEventListener('click', handleSaveColor);
+  elements.testColorBtn.addEventListener('click', () => handleTestColor(elements.meetingColorPicker));
+  elements.saveColorBtn.addEventListener('click', () => handleSaveColor(elements.meetingColorPicker));
 
-  elements.hueSlider.addEventListener('input', updateColorPreview);
-  elements.satSlider.addEventListener('input', updateColorPreview);
-  elements.briSlider.addEventListener('input', updateColorPreview);
+  elements.meetingColorPicker.hueSlider.addEventListener('input', () => updateColorPreview(elements.meetingColorPicker));
+  elements.meetingColorPicker.satSlider.addEventListener('input', () => updateColorPreview(elements.meetingColorPicker));
+  elements.meetingColorPicker.briSlider.addEventListener('input', () => updateColorPreview(elements.meetingColorPicker));
+
+  // Warning color controls
+  elements.enableWarningColor.addEventListener('change', handleWarningColorToggle);
+
+  elements.testWarningColorBtn.addEventListener('click', () => handleTestColor(elements.warningColorPicker));
+  elements.saveWarningColorBtn.addEventListener('click', () => handleSaveColor(elements.warningColorPicker));
+
+  elements.warningColorPicker.hueSlider.addEventListener('input', () => updateColorPreview(elements.warningColorPicker));
+  elements.warningColorPicker.satSlider.addEventListener('input', () => updateColorPreview(elements.warningColorPicker));
+  elements.warningColorPicker.briSlider.addEventListener('input', () => updateColorPreview(elements.warningColorPicker));
 
   // Allow manual IP entry
   elements.bridgeIp.addEventListener('change', (e) => {
@@ -466,6 +557,7 @@ async function initialize() {
       const authenticated = await testAuthentication();
       if (authenticated && config.lightId) {
         elements.colorSection.classList.remove('hidden');
+        elements.warningColorSection.classList.remove('hidden');
       }
     }
   } else {

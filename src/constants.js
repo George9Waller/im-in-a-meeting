@@ -6,7 +6,13 @@
 
 // Message types for communication with background script
 const MESSAGE_TYPES = Object.freeze({
-  MEETING_STATUS: 'meetingStatus',
+  STATUS: 'status',
   GET_STATUS: 'getStatus',
   STATUS_CHANGED: 'statusChanged'
+});
+
+const STATUS_TYPES = Object.freeze({
+  NO_STATUS: 'noStatus',
+  IN_MEETING: 'inMeeting',
+  WARNING: 'warning'
 });

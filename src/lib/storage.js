@@ -4,9 +4,16 @@
 
 // Message types for communication between components
 export const MESSAGE_TYPES = Object.freeze({
-  MEETING_STATUS: 'meetingStatus',
+  STATUS: 'status',
   GET_STATUS: 'getStatus',
   STATUS_CHANGED: 'statusChanged'
+});
+
+// Meeting status types
+export const STATUS_TYPES = Object.freeze({
+  NO_STATUS: 'noStatus',
+  IN_MEETING: 'inMeeting',
+  WARNING: 'warning'
 });
 
 // Storage keys
@@ -18,10 +25,15 @@ export const STORAGE_KEYS = Object.freeze({
   MEETING_HUE: 'meetingHue',
   MEETING_SAT: 'meetingSat',
   MEETING_BRI: 'meetingBri',
+  WARNING_COLOR_ENABLED: 'warningColorEnabled',
+  WARNING_HUE: 'warningColorHue',
+  WARNING_SAT: 'warningColorSat',
+  WARNING_BRI: 'warningColorBri',
 
   // Session state (chrome.storage.session)
   PREVIOUS_LIGHT_STATE: 'previousLightState',
-  CURRENT_MEETING_STATUS: 'currentMeetingStatus'
+  CURRENT_MEETING_STATUS: 'currentMeetingStatus',
+  CURRENT_WARNING_STATUS: 'currentWarningStatus'
 });
 
 // Default meeting color (red)
@@ -75,7 +87,8 @@ export async function clearBridgeConfig() {
   // Also clear session state
   await chrome.storage.session.remove([
     STORAGE_KEYS.PREVIOUS_LIGHT_STATE,
-    STORAGE_KEYS.CURRENT_MEETING_STATUS
+    STORAGE_KEYS.CURRENT_MEETING_STATUS,
+    STORAGE_KEYS.CURRENT_WARNING_STATUS
   ]);
 }
 
@@ -110,6 +123,55 @@ export async function saveMeetingColor(color) {
 }
 
 /**
+ * Get warning color enabled state
+ * @returns {Promise<{warningColorEnabled: boolean}>}
+ */
+export async function getWarningColorEnabled() {
+  const result = await chrome.storage.local.get(STORAGE_KEYS.WARNING_COLOR_ENABLED);
+  return result[STORAGE_KEYS.WARNING_COLOR_ENABLED] ?? false;
+}
+
+/**
+ * Save warning color enabled state
+ * @param {boolean} enabled
+ */
+export async function saveWarningColorEnabled(enabled) {
+  await chrome.storage.local.set({
+    [STORAGE_KEYS.WARNING_COLOR_ENABLED]: enabled
+  });
+}
+
+/**
+ * Get warning color settings
+ * @returns {Promise<{hue: number, sat: number, bri: number}>}
+ */
+export async function getWarningColor() {
+  const result = await chrome.storage.local.get([
+    STORAGE_KEYS.WARNING_HUE,
+    STORAGE_KEYS.WARNING_SAT,
+    STORAGE_KEYS.WARNING_BRI
+  ]);
+
+  return {
+    hue: result[STORAGE_KEYS.WARNING_HUE] ?? DEFAULT_MEETING_COLOR.hue,
+    sat: result[STORAGE_KEYS.WARNING_SAT] ?? DEFAULT_MEETING_COLOR.sat,
+    bri: result[STORAGE_KEYS.WARNING_BRI] ?? DEFAULT_MEETING_COLOR.bri
+  };
+}
+
+/**
+ * Save warning color settings
+ * @param {{hue: number, sat: number, bri: number}} color
+ */
+export async function saveWarningColor(color) {
+  await chrome.storage.local.set({
+    [STORAGE_KEYS.WARNING_HUE]: color.hue,
+    [STORAGE_KEYS.WARNING_SAT]: color.sat,
+    [STORAGE_KEYS.WARNING_BRI]: color.bri
+  });
+}
+
+/**
  * Get current meeting status (persisted across service worker restarts)
  * @returns {Promise<boolean>}
  */
@@ -127,6 +189,48 @@ export async function setMeetingStatus(inMeeting) {
     [STORAGE_KEYS.CURRENT_MEETING_STATUS]: inMeeting
   });
 }
+
+/**
+ * Get current warning status (persisted across service worker restarts)
+ * @returns {Promise<boolean>}
+ */
+export async function getWarningStatus() {
+  const result = await chrome.storage.session.get(STORAGE_KEYS.CURRENT_WARNING_STATUS);
+  return result[STORAGE_KEYS.CURRENT_WARNING_STATUS] ?? false;
+}
+
+/**
+ * Set current meeting status
+ * @param {boolean} inMeeting
+ */
+export async function setWarningStatus(inWarning) {
+  await chrome.storage.session.set({
+    [STORAGE_KEYS.CURRENT_WARNING_STATUS]: inWarning
+  });
+}
+
+/**
+ * Get current meeting or warning status (persisted across service worker restarts)
+ * @returns {Promise<boolean>}
+ */
+export async function getStatus() {
+  const inMeeting = await getMeetingStatus();
+
+  if (inMeeting) {
+    return STATUS_TYPES.IN_MEETING;
+  }
+
+  const warningColorEnabled = await getWarningColorEnabled();
+  if (warningColorEnabled === true) {
+    const inWarning = await getWarningStatus();
+    if (inWarning) {
+      return STATUS_TYPES.WARNING;
+    }
+  }
+
+  return STATUS_TYPES.NO_STATUS;
+}
+
 
 /**
  * Get previously saved light state
@@ -159,15 +263,21 @@ export async function clearPreviousLightState() {
  * @returns {Promise<{bridgeIp: string, username: string, lightId: string, meetingHue: number, meetingSat: number, meetingBri: number}>}
  */
 export async function getFullConfig() {
-  const [bridgeConfig, meetingColor] = await Promise.all([
+  const [bridgeConfig, meetingColor, warningColor, warningColorEnabled] = await Promise.all([
     getBridgeConfig(),
-    getMeetingColor()
+    getMeetingColor(),
+    getWarningColor(),
+    getWarningColorEnabled()
   ]);
 
   return {
     ...bridgeConfig,
     meetingHue: meetingColor.hue,
     meetingSat: meetingColor.sat,
-    meetingBri: meetingColor.bri
+    meetingBri: meetingColor.bri,
+    warningColorEnabled: warningColorEnabled,
+    warningHue: warningColor.hue,
+    warningSat: warningColor.sat,
+    warningBri: warningColor.bri
   };
 }

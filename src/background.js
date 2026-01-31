@@ -6,23 +6,28 @@
 import { HueClient, hueToApi, percentToApi } from './lib/hue-api.js';
 import {
   MESSAGE_TYPES,
+  STATUS_TYPES,
   getBridgeConfig,
   getMeetingColor,
   getMeetingStatus,
   setMeetingStatus,
   getPreviousLightState,
   savePreviousLightState,
-  clearPreviousLightState
+  clearPreviousLightState,
+  getWarningStatus,
+  setWarningStatus,
+  getWarningColor,
+  getStatus
 } from './lib/storage.js';
 
 /**
  * Broadcast meeting status change to all extension pages (popup, etc.)
- * @param {boolean} inMeeting
+ * @param {string STATUS_TYPES} status
  */
-function broadcastStatusChange(inMeeting) {
+function broadcastStatusChange(status) {
   chrome.runtime.sendMessage({
     type: MESSAGE_TYPES.STATUS_CHANGED,
-    inMeeting
+    status: status
   }).catch(() => {
     // Popup may not be open, ignore errors
   });
@@ -30,19 +35,47 @@ function broadcastStatusChange(inMeeting) {
 
 /**
  * Handle transition to "in meeting" state
+ * @param {boolean} savePreviousLightState
  */
-async function handleSetInMeeting() {
+async function handleSetInMeeting(savePreviousLightState) {
   const currentStatus = await getMeetingStatus();
   if (currentStatus === true) return; // Already in meeting
 
   console.log('[BACKGROUND] Joining meeting, saving light state and setting meeting color');
 
   await setMeetingStatus(true);
-  broadcastStatusChange(true);
+  await setWarningStatus(false);
+  broadcastStatusChange(STATUS_TYPES.IN_MEETING);
 
-  const saved = await saveLightState();
-  if (saved) {
+  let saved = false;
+  if (savePreviousLightState === true) {
+    saved = await saveLightState();
+  }
+  if (savePreviousLightState === false || saved) {
     await setLightToMeetingColor();
+  }
+}
+
+/**
+ * Handle transition to "warning" state
+ * @param {boolean} savePreviousLightState
+ */
+async function handleSetWarning(savePreviousLightState) {
+  const currentStatus = await getWarningStatus();
+  if (currentStatus === true) return; // Already in warning state
+
+  console.log('[BACKGROUND] Joining meeting, saving light state and setting warning color');
+
+  await setMeetingStatus(false);
+  await setWarningStatus(true);
+  broadcastStatusChange(STATUS_TYPES.WARNING);
+
+  let saved = false;
+  if (savePreviousLightState === true) {
+    saved = await saveLightState();
+  }
+  if (savePreviousLightState === false || saved) {
+    await setLightToWarningColor();
   }
 }
 
@@ -50,16 +83,27 @@ async function handleSetInMeeting() {
  * Handle transition to "not in meeting" state
  */
 async function handleSetNotInMeeting() {
-  const currentStatus = await getMeetingStatus();
-  if (currentStatus === false) return; // Already not in meeting
+  const [meetingStatus, warningStatus] = await Promise.all([
+    getMeetingStatus(),
+    getWarningStatus()
+  ]);
 
-  console.log('[BACKGROUND] Leaving meeting, restoring light state');
+  // Already in NO_STATUS state (neither meeting nor warning)
+  if (meetingStatus === false && warningStatus === false) return;
+
+  console.log('[BACKGROUND] Leaving meeting/warning, restoring light state');
 
   await setMeetingStatus(false);
-  broadcastStatusChange(false);
+  await setWarningStatus(false);
+  broadcastStatusChange(STATUS_TYPES.NO_STATUS);
 
   await restoreLightState();
 }
+
+/**
+ * Handle transition to "warning" state
+ * Records state and transitions to warning state if not already in a meeting
+ */
 
 /**
  * Create a HueClient from stored configuration
@@ -141,6 +185,39 @@ async function setLightToMeetingColor() {
 }
 
 /**
+ * Set light to configured warning color
+ * @returns {Promise<boolean>}
+ */
+async function setLightToWarningColor() {
+  const hue = await getHueClient();
+  if (!hue) return false;
+
+  const warningColor = await getWarningColor();
+  // Convert from user-facing ranges to Hue API ranges
+  const apiState = {
+    on: true,
+    hue: hueToApi(warningColor.hue),
+    sat: percentToApi(warningColor.sat),
+    bri: percentToApi(warningColor.bri)
+  };
+
+  console.log('[BACKGROUND] Setting warning color:', {
+    userColor: warningColor,
+    apiState
+  });
+
+  const success = await hue.client.setLightState(hue.lightId, apiState);
+
+  if (success) {
+    console.log('[BACKGROUND] Light set to warning color');
+  } else {
+    console.error('[BACKGROUND] Failed to set warning color');
+  }
+
+  return success;
+}
+
+/**
  * Restore light to previously saved state
  * @returns {Promise<boolean>}
  */
@@ -172,9 +249,15 @@ async function restoreLightState() {
 // Listen for messages from content script and popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Meeting status update from content script
-  if (message.type === MESSAGE_TYPES.MEETING_STATUS) {
-    if (message.inMeeting) {
-      handleSetInMeeting();
+  if (message.type === MESSAGE_TYPES.STATUS) {
+    // Save the previous light state if transitioning from NO_STATUS (or null on first load)
+    const savePreviousLightState = message.previousStatus === STATUS_TYPES.NO_STATUS ||
+                                   message.previousStatus === null;
+
+    if (message.status === STATUS_TYPES.IN_MEETING) {
+      handleSetInMeeting(savePreviousLightState);
+    } else if (message.status === STATUS_TYPES.WARNING) {
+      handleSetWarning(savePreviousLightState);
     } else {
       handleSetNotInMeeting();
     }
@@ -182,8 +265,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // Popup requesting current status
   if (message.type === MESSAGE_TYPES.GET_STATUS) {
-    getMeetingStatus().then(inMeeting => {
-      sendResponse({ inMeeting });
+    getStatus().then(status => {
+      sendResponse({ status });
     });
     return true; // Keep channel open for async response
   }
@@ -193,8 +276,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Restore state on service worker startup (in case it was terminated during a meeting)
 (async function initializeOnStartup() {
-  const inMeeting = await getMeetingStatus();
-  if (inMeeting) {
+  const status = await getStatus();
+  if (status === STATUS_TYPES.IN_MEETING) {
     console.log('[BACKGROUND] Service worker restarted while in meeting, state preserved');
+  } else if (status === STATUS_TYPES.WARNING) {
+    console.log('[BACKGROUND] Service worker restarted while in warning state, state preserved');
   }
 })();

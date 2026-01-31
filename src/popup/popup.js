@@ -1,25 +1,32 @@
 /**
  * Popup script for "I'm in a meeting" extension
  * Displays current meeting status with dynamic meeting color
+ *
+ * Note: MESSAGE_TYPES and STATUS_TYPES are loaded from constants.js (see popup.html)
  */
 
 (function() {
   'use strict';
 
+  // DOM elements
   const statusEl = document.getElementById('status');
   const statusDot = statusEl.querySelector('.status-dot');
   const statusText = statusEl.querySelector('.status-text');
   const settingsBtn = document.getElementById('settingsBtn');
 
-  // Storage keys (duplicated here since popup doesn't use ES modules)
-  const STORAGE_KEYS = {
+  // Storage keys (not in constants.js since they're storage-specific)
+  const STORAGE_KEYS = Object.freeze({
     MEETING_HUE: 'meetingHue',
     MEETING_SAT: 'meetingSat',
-    MEETING_BRI: 'meetingBri'
-  };
+    MEETING_BRI: 'meetingBri',
+    WARNING_HUE: 'warningColorHue',
+    WARNING_SAT: 'warningColorSat',
+    WARNING_BRI: 'warningColorBri'
+  });
 
-  // Cached meeting color
+  // Cached colors
   let meetingColor = null;
+  let warningColor = null;
 
   /**
    * Convert HSB values to CSS hsl() string
@@ -29,9 +36,6 @@
    * @returns {string} CSS hsl color
    */
   function hsbToHsl(hue, sat, bri) {
-    // HSB to HSL conversion
-    // In HSB, brightness is the max RGB value
-    // In HSL, lightness is the average of max and min RGB
     const s = sat / 100;
     const v = bri / 100;
 
@@ -42,11 +46,11 @@
   }
 
   /**
-   * Generate a darker background color from the meeting color
+   * Generate a darker background color from the hue
    * @param {number} hue - 0-360
    * @returns {string} CSS hsl color for background
    */
-  function getMeetingBackground(hue) {
+  function getStatusBackground(hue) {
     return `hsl(${hue}, 100%, 5%)`;
   }
 
@@ -69,12 +73,30 @@
   }
 
   /**
-   * Apply meeting color styles to the status element
+   * Fetch the saved warning color from storage
+   * @returns {Promise<{hue: number, sat: number, bri: number}>}
+   */
+  async function fetchWarningColor() {
+    const result = await chrome.storage.local.get([
+      STORAGE_KEYS.WARNING_HUE,
+      STORAGE_KEYS.WARNING_SAT,
+      STORAGE_KEYS.WARNING_BRI
+    ]);
+
+    return {
+      hue: result[STORAGE_KEYS.WARNING_HUE] ?? 0,
+      sat: result[STORAGE_KEYS.WARNING_SAT] ?? 100,
+      bri: result[STORAGE_KEYS.WARNING_BRI] ?? 100
+    };
+  }
+
+  /**
+   * Apply color styles to the status element
    * @param {{hue: number, sat: number, bri: number}} color
    */
-  function applyMeetingColorStyles(color) {
+  function applyColorStyles(color) {
     const cssColor = hsbToHsl(color.hue, color.sat, color.bri);
-    const bgColor = getMeetingBackground(color.hue);
+    const bgColor = getStatusBackground(color.hue);
 
     statusEl.style.borderColor = cssColor;
     statusEl.style.background = bgColor;
@@ -84,9 +106,9 @@
   }
 
   /**
-   * Clear meeting color styles (reset to CSS defaults)
+   * Clear color styles (reset to CSS defaults)
    */
-  function clearMeetingColorStyles() {
+  function clearColorStyles() {
     statusEl.style.borderColor = '';
     statusEl.style.background = '';
     statusDot.style.background = '';
@@ -96,39 +118,46 @@
 
   /**
    * Update the meeting status indicator UI
-   * @param {boolean} inMeeting
+   * @param {string} status - STATUS_TYPES value
    */
-  async function updateMeetingStateIndicator(inMeeting) {
-    if (inMeeting) {
+  async function updateStatusIndicator(status) {
+    if (status === STATUS_TYPES.IN_MEETING) {
       statusEl.className = 'status in-meeting';
       statusText.textContent = chrome.i18n.getMessage('statusInMeeting');
 
-      // Fetch and apply the meeting color
       if (!meetingColor) {
         meetingColor = await fetchMeetingColor();
       }
-      applyMeetingColorStyles(meetingColor);
+      applyColorStyles(meetingColor);
+
+    } else if (status === STATUS_TYPES.WARNING) {
+      statusEl.className = 'status warning';
+      statusText.textContent = chrome.i18n.getMessage('statusWarning');
+
+      if (!warningColor) {
+        warningColor = await fetchWarningColor();
+      }
+      applyColorStyles(warningColor);
+
     } else {
       statusEl.className = 'status not-in-meeting';
       statusText.textContent = chrome.i18n.getMessage('statusNotInMeeting');
-      clearMeetingColorStyles();
+      clearColorStyles();
     }
   }
 
   /**
    * Fetch current meeting state from background script
    */
-  async function fetchInitialMeetingState() {
+  async function fetchInitialState() {
     try {
-      // Pre-fetch meeting color
       meetingColor = await fetchMeetingColor();
 
       const response = await chrome.runtime.sendMessage({
         type: MESSAGE_TYPES.GET_STATUS
       });
-      await updateMeetingStateIndicator(response.inMeeting);
+      await updateStatusIndicator(response.status);
     } catch (error) {
-      console.error('[POPUP] Error fetching meeting state:', error);
       statusText.textContent = chrome.i18n.getMessage('statusError');
     }
   }
@@ -139,30 +168,46 @@
   function listenForStatusChanges() {
     chrome.runtime.onMessage.addListener((message) => {
       if (message.type === MESSAGE_TYPES.STATUS_CHANGED) {
-        updateMeetingStateIndicator(message.inMeeting);
+        updateStatusIndicator(message.status);
       }
     });
   }
 
   /**
-   * Listen for storage changes (in case user updates meeting color)
+   * Listen for storage changes (in case user updates colors in settings)
    */
   function listenForColorChanges() {
     chrome.storage.onChanged.addListener((changes, areaName) => {
       if (areaName !== 'local') return;
 
-      const colorChanged =
+      // Check if meeting color changed
+      const meetingColorChanged =
         STORAGE_KEYS.MEETING_HUE in changes ||
         STORAGE_KEYS.MEETING_SAT in changes ||
         STORAGE_KEYS.MEETING_BRI in changes;
 
-      if (colorChanged) {
-        // Invalidate cache and re-apply if in meeting
+      if (meetingColorChanged) {
         meetingColor = null;
         if (statusEl.classList.contains('in-meeting')) {
           fetchMeetingColor().then(color => {
             meetingColor = color;
-            applyMeetingColorStyles(color);
+            applyColorStyles(color);
+          });
+        }
+      }
+
+      // Check if warning color changed
+      const warningColorChanged =
+        STORAGE_KEYS.WARNING_HUE in changes ||
+        STORAGE_KEYS.WARNING_SAT in changes ||
+        STORAGE_KEYS.WARNING_BRI in changes;
+
+      if (warningColorChanged) {
+        warningColor = null;
+        if (statusEl.classList.contains('warning')) {
+          fetchWarningColor().then(color => {
+            warningColor = color;
+            applyColorStyles(color);
           });
         }
       }
@@ -180,5 +225,5 @@
   settingsBtn.addEventListener('click', openSettings);
   listenForStatusChanges();
   listenForColorChanges();
-  fetchInitialMeetingState();
+  fetchInitialState();
 })();
